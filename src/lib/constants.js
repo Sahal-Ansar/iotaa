@@ -15,7 +15,4 @@ export const PREFIX = {
   sa: "SHORT"
 };
 
-/* Which module each match-the-pairs set belongs to. */
-export const MATCH_TOPICS = [6, 4, 2, 1, 7];
-
-export const STORAGE_KEY = "iot-drill-room.v1";
+export const STORAGE_KEY = "drill-room.v2";

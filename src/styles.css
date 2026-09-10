@@ -219,3 +219,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 .acts.center{justify-content:center}
 .tag.retry{color:var(--accent)}
 .done h2{margin-top:14px}
+
+/* ---------- course switcher ---------- */
+.courses { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line);
+           border-radius: var(--r); padding: 3px; }
+.course { flex: 1; border: 0; background: none; border-radius: 4px; padding: 6px 4px;
+          font-family: var(--disp); font-weight: 600; font-size: 12px; letter-spacing: .04em;
+          color: var(--muted); transition: background .12s, color .12s; }
+.course:hover { color: var(--ink-2); }
+.course[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }

@@ -1,8 +1,9 @@
 import { MODES } from "../lib/constants.js";
-import { COUNTS, TOPICS } from "../lib/useDrill.js";
+import { COURSES } from "../lib/useDrill.js";
 
 export default function Rail({
-  open, onClose, mode, onMode, topics, onToggleTopic, onAllTopics,
+  open, onClose, courseKey, courseCaption, onCourse, counts, topicNames,
+  mode, onMode, topics, onToggleTopic, onAllTopics,
   shuffleOn, onShuffle, dark, onTheme, onRestart, onClear
 }) {
   return (
@@ -10,9 +11,27 @@ export default function Rail({
       <div>
         <div className="brand">
           <span className="dot" />
-          <h1>IoT Drill Room</h1>
+          <h1>Drill Room</h1>
         </div>
-        <div className="sub">IoT &amp; Applications · active recall</div>
+        <div className="sub">{courseCaption}</div>
+      </div>
+
+      <div className="rgroup">
+        <h2>Course</h2>
+        <div className="courses" role="tablist" aria-label="Course">
+          {COURSES.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              role="tab"
+              className="course"
+              aria-selected={courseKey === c.key}
+              onClick={() => onCourse(c.key)}
+            >
+              {c.short}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="rgroup">
@@ -27,7 +46,7 @@ export default function Rail({
               onClick={() => { onMode(m.key); onClose(); }}
             >
               <span>{m.label}</span>
-              <span className="ct">{COUNTS[m.key]}</span>
+              <span className="ct">{counts[m.key]}</span>
             </button>
           ))}
         </div>
@@ -36,7 +55,7 @@ export default function Rail({
       <div className="rgroup">
         <h2>Modules</h2>
         <div className="chips">
-          {TOPICS.map((label, i) => (
+          {topicNames.map((label, i) => (
             <button
               key={label}
               type="button"
@@ -73,7 +92,7 @@ export default function Rail({
           Restart this set
         </button>
         <button type="button" className="tinybtn warn" onClick={() => { onClear(); onClose(); }}>
-          Clear all progress
+          Clear {courseKey.toUpperCase()} progress
         </button>
       </div>
     </aside>

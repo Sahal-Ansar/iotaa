@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { PREFIX } from "./lib/constants.js";
-import { useDrill, TOPICS } from "./lib/useDrill.js";
+import { useDrill } from "./lib/useDrill.js";
 import Rail from "./components/Rail.jsx";
 import TopBar from "./components/TopBar.jsx";
 import Summary from "./components/Summary.jsx";
@@ -65,6 +65,11 @@ export default function App() {
         <Rail
           open={menuOpen}
           onClose={closeMenu}
+          courseKey={d.courseKey}
+          courseCaption={d.course.caption}
+          onCourse={d.changeCourse}
+          counts={d.counts}
+          topicNames={d.topicNames}
           mode={d.mode}
           onMode={d.setMode}
           topics={d.topics}
@@ -99,6 +104,7 @@ export default function App() {
             {finished && (
               <Summary
                 score={d.score}
+                topicNames={d.topicNames}
                 hasWrong={d.hasWrong}
                 onRetryWrong={d.retryWrong}
                 onRestart={d.restart}
@@ -112,13 +118,13 @@ export default function App() {
                     {PREFIX[d.current.kind]}{" "}
                     {String(d.current.item.id).padStart(d.current.kind === "mcq" ? 3 : 2, "0")}
                   </span>
-                  <span className="tag">{TOPICS[d.current.item.t]}</span>
+                  <span className="tag">{d.topicNames[d.current.item.t]}</span>
                   {d.retryOnly !== null && <span className="tag retry">retry set</span>}
                 </div>
 
                 {d.current.kind === "mcq" && (
                   <McqCard
-                    key={d.current.item.id}
+                    key={`${d.courseKey}-${d.current.item.id}`}
                     item={d.current.item}
                     answered={d.answered}
                     pick={d.pick}
@@ -131,7 +137,7 @@ export default function App() {
 
                 {d.current.kind === "tf" && (
                   <TfCard
-                    key={d.current.item.id}
+                    key={`${d.courseKey}-${d.current.item.id}`}
                     item={d.current.item}
                     answered={d.answered}
                     pick={d.pick}
@@ -144,7 +150,7 @@ export default function App() {
 
                 {d.current.kind === "fitb" && (
                   <BlankCard
-                    key={d.current.item.id}
+                    key={`${d.courseKey}-${d.current.item.id}`}
                     item={d.current.item}
                     answered={d.answered}
                     pick={d.pick}
@@ -159,7 +165,7 @@ export default function App() {
 
                 {d.current.kind === "match" && (
                   <MatchCard
-                    key={d.current.item.id}
+                    key={`${d.courseKey}-${d.current.item.id}`}
                     item={d.current.item}
                     answered={d.answered}
                     pairs={d.pairs}
@@ -172,7 +178,7 @@ export default function App() {
 
                 {d.current.kind === "sa" && (
                   <ShortCard
-                    key={d.current.item.id}
+                    key={`${d.courseKey}-${d.current.item.id}`}
                     item={d.current.item}
                     revealed={d.revealed}
                     onReveal={() => d.setRevealed(true)}

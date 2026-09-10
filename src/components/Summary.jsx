@@ -1,6 +1,4 @@
-import { TOPICS } from "../lib/useDrill.js";
-
-export default function Summary({ score, hasWrong, onRetryWrong, onRestart }) {
+export default function Summary({ score, topicNames, hasWrong, onRetryWrong, onRestart }) {
   const { right, wrong, attempted, byTopic } = score;
   const pct = attempted ? Math.round((right / attempted) * 100) : 0;
 
@@ -25,8 +23,8 @@ export default function Summary({ score, hasWrong, onRetryWrong, onRestart }) {
         <div className="breakdown">
           {byTopic.map((bucket, i) =>
             bucket.total ? (
-              <div className="brow" key={TOPICS[i]}>
-                <span className="nm">{TOPICS[i]}</span>
+              <div className="brow" key={topicNames[i]}>
+                <span className="nm">{topicNames[i]}</span>
                 <span className="bar">
                   <i style={{ width: `${Math.round((bucket.right / bucket.total) * 100)}%` }} />
                 </span>

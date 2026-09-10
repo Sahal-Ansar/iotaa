@@ -1,30 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import bank from "../data/questions.json";
-import { MATCH_TOPICS } from "./constants.js";
+import { COURSES, DEFAULT_COURSE, countsFor, getCourse } from "./courses.js";
 import { isBlankCorrect, shuffle } from "./grading.js";
 import { readSaved, writeSaved } from "./storage.js";
 
-/* The match sets are authored as a group, so tag them here. */
-const DATA = {
-  ...bank,
-  match: bank.match.map((set, i) => ({ ...set, id: set.n, t: MATCH_TOPICS[i] }))
-};
+export { COURSES };
 
-export const TOPICS = DATA.topics;
-export const COUNTS = {
-  mcq: DATA.mcq.length,
-  fitb: DATA.fitb.length,
-  tf: DATA.tf.length,
-  match: DATA.match.length,
-  sa: DATA.sa.length,
-  mixed: DATA.mcq.length + DATA.fitb.length + DATA.tf.length
-};
-
-const uid = (kind, item) => `${kind}:${item.id}`;
+/* Results are namespaced by course so the two sets never collide. */
+const uid = (course, kind, item) => `${course}:${kind}:${item.id}`;
 
 export function useDrill() {
   const saved = useRef(readSaved()).current;
 
+  const [courseKey, setCourseKey] = useState(saved.course || DEFAULT_COURSE);
   const [mode, setMode] = useState(saved.mode || "mcq");
   const [topics, setTopics] = useState(
     Array.isArray(saved.topics) ? saved.topics : []
@@ -44,9 +31,14 @@ export function useDrill() {
   const [revealed, setRevealed] = useState(false);
   const [retryOnly, setRetryOnly] = useState(null);
 
+  const course = getCourse(courseKey);
+  const bank = course.bank;
+  const topicNames = bank.topics;
+  const counts = useMemo(() => countsFor(bank), [bank]);
+
   useEffect(() => {
-    writeSaved({ mode, topics, shuffle: shuffleOn, theme, results });
-  }, [mode, topics, shuffleOn, theme, results]);
+    writeSaved({ course: courseKey, mode, topics, shuffle: shuffleOn, theme, results });
+  }, [courseKey, mode, topics, shuffleOn, theme, results]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -63,10 +55,10 @@ export function useDrill() {
     const kinds = mode === "mixed" ? ["mcq", "fitb", "tf"] : [mode];
     const list = [];
     kinds.forEach((kind) => {
-      DATA[kind].filter(inTopic).forEach((item) => list.push({ kind, item }));
+      bank[kind].filter(inTopic).forEach((item) => list.push({ kind, item }));
     });
     return shuffleOn ? shuffle(list) : list;
-  }, [mode, inTopic, shuffleOn]);
+  }, [bank, mode, inTopic, shuffleOn]);
 
   const clearCard = useCallback(() => {
     setAnswered(false);
@@ -83,7 +75,7 @@ export function useDrill() {
     clearCard();
   }, [buildQueue, clearCard]);
 
-  /* rebuild whenever the selection changes */
+  /* rebuild whenever course, mode, topics or shuffle change */
   useEffect(() => {
     setRetryOnly(null);
     setQueue(buildQueue());
@@ -91,30 +83,39 @@ export function useDrill() {
     clearCard();
   }, [buildQueue, clearCard]);
 
+  /* switching course invalidates the module filter — module 3 means
+     something different in each bank, so start from "All" */
+  const changeCourse = useCallback((key) => {
+    setCourseKey(key);
+    setTopics([]);
+  }, []);
+
   const current = cursor < queue.length ? queue[cursor] : null;
 
   const score = useMemo(() => {
     let right = 0;
     let wrong = 0;
-    const byTopic = TOPICS.map(() => ({ right: 0, total: 0 }));
+    const byTopic = topicNames.map(() => ({ right: 0, total: 0 }));
     queue.forEach(({ kind, item }) => {
-      const r = results[uid(kind, item)];
+      const r = results[uid(courseKey, kind, item)];
       if (r === undefined) return;
       const bucket = byTopic[item.t];
-      bucket.total += 1;
-      if (r === 1) {
-        right += 1;
-        bucket.right += 1;
-      } else {
-        wrong += 1;
+      if (bucket) {
+        bucket.total += 1;
+        if (r === 1) bucket.right += 1;
       }
+      if (r === 1) right += 1;
+      else wrong += 1;
     });
     return { right, wrong, attempted: right + wrong, total: queue.length, byTopic };
-  }, [queue, results]);
+  }, [queue, results, courseKey, topicNames]);
 
-  const record = useCallback((kind, item, ok) => {
-    setResults((prev) => ({ ...prev, [uid(kind, item)]: ok ? 1 : 0 }));
-  }, []);
+  const record = useCallback(
+    (kind, item, ok) => {
+      setResults((prev) => ({ ...prev, [uid(courseKey, kind, item)]: ok ? 1 : 0 }));
+    },
+    [courseKey]
+  );
 
   const next = useCallback(() => {
     setCursor((c) => c + 1);
@@ -133,7 +134,7 @@ export function useDrill() {
       if (pick === null) return;
       record(kind, item, pick === item.ans);
     } else if (kind === "fitb") {
-      const ok = isBlankCorrect(typed, item.acc);
+      const ok = isBlankCorrect(typed, item.acc || [item.ans]);
       setPick(ok ? "ok" : "no");
       record(kind, item, ok);
     } else if (kind === "match") {
@@ -173,23 +174,32 @@ export function useDrill() {
   }, [current, record]);
 
   const retryWrong = useCallback(() => {
-    const missed = queue.filter(({ kind, item }) => results[uid(kind, item)] === 0);
+    const missed = queue.filter(
+      ({ kind, item }) => results[uid(courseKey, kind, item)] === 0
+    );
     if (!missed.length) return;
     setResults((prev) => {
       const copy = { ...prev };
-      missed.forEach(({ kind, item }) => delete copy[uid(kind, item)]);
+      missed.forEach(({ kind, item }) => delete copy[uid(courseKey, kind, item)]);
       return copy;
     });
     setRetryOnly(missed.length);
     setQueue(missed);
     setCursor(0);
     clearCard();
-  }, [queue, results, clearCard]);
+  }, [queue, results, courseKey, clearCard]);
 
+  /* clears only the course you are looking at */
   const clearProgress = useCallback(() => {
-    setResults({});
+    setResults((prev) => {
+      const copy = {};
+      Object.keys(prev).forEach((k) => {
+        if (!k.startsWith(`${courseKey}:`)) copy[k] = prev[k];
+      });
+      return copy;
+    });
     restart();
-  }, [restart]);
+  }, [courseKey, restart]);
 
   const toggleTopic = useCallback((index) => {
     setTopics((prev) =>
@@ -198,6 +208,8 @@ export function useDrill() {
   }, []);
 
   return {
+    course, courseKey, changeCourse,
+    topicNames, counts,
     mode, setMode,
     topics, setTopics, toggleTopic,
     shuffleOn, setShuffleOn,
