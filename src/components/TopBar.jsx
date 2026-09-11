@@ -5,9 +5,10 @@ export default function TopBar({ onMenu, position, total, right, wrong, attempte
     <div className="bar">
       <div className="barin">
         <button type="button" className="menubtn" aria-label="Open menu" onClick={onMenu}>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
-            strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-            <path d="M2 4h12M2 8h12M2 12h12" />
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="17" y2="6" />
+            <line x1="3" y1="14" x2="17" y2="14" />
           </svg>
         </button>
 
@@ -26,7 +27,7 @@ export default function TopBar({ onMenu, position, total, right, wrong, attempte
               {right}<em>/{attempted}</em>&nbsp; {Math.round((right / attempted) * 100)}%
             </>
           ) : (
-            <em>not started</em>
+            <em>ready</em>
           )}
         </span>
       </div>

@@ -60,6 +60,23 @@ export default function App() {
 
   return (
     <>
+      {/* Psychological Blue Motion Blur Ambient Auras */}
+      <div className="ambient-container" aria-hidden="true">
+        <div className="aura-blob aura-blob-1" />
+        <div className="aura-blob aura-blob-2" />
+        <div className="aura-blob aura-blob-3" />
+        <div className="aura-blob aura-blob-4" />
+      </div>
+
+      {/* Authentic Liquid Speckle & Grain Overlay */}
+      <svg className="noise-overlay" aria-hidden="true">
+        <filter id="speckle-noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
+          <feColorMatrix type="matrix" values="0 0 0 0 0.08   0 0 0 0 0.18   0 0 0 0 0.65   0 0 0 0.18 0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#speckle-noise)" />
+      </svg>
+
       <div className={`scrim${menuOpen ? " open" : ""}`} onClick={closeMenu} />
       <div className="shell">
         <Rail

@@ -9,9 +9,26 @@ export default function Rail({
   return (
     <aside className={`rail${open ? " open" : ""}`}>
       <div>
-        <div className="brand">
-          <span className="dot" />
-          <h1>Drill Room</h1>
+        <div className="brand-wrap">
+          <div className="brand">
+            <div className="brand-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
+                <circle cx="19" cy="8" r="2" />
+                <circle cx="5" cy="8" r="2" />
+                <circle cx="6" cy="18" r="2" />
+                <circle cx="18" cy="18" r="2" />
+                <circle cx="12" cy="4" r="1.5" />
+                <path d="M12 9V5.5M10 10.5L6.5 9M14 10.5L17.5 9M10.5 13.5L7.5 16.5M13.5 13.5L16.5 16.5" />
+              </svg>
+            </div>
+            <h1>Drill Room</h1>
+          </div>
+          <button type="button" className="close-btn" aria-label="Close menu" onClick={onClose}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
         </div>
         <div className="sub">{courseCaption}</div>
       </div>
