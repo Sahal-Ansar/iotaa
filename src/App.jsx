@@ -9,6 +9,9 @@ import TfCard from "./components/TfCard.jsx";
 import BlankCard from "./components/BlankCard.jsx";
 import MatchCard from "./components/MatchCard.jsx";
 import ShortCard from "./components/ShortCard.jsx";
+import CodeStage from "./components/code/CodeStage.jsx";
+import { useCodeDrill } from "./lib/useCodeDrill.js";
+import { CODE_BANK, CODE_MODES } from "./lib/codeBank.js";
 
 function prefersDark() {
   return typeof window !== "undefined" &&
@@ -17,6 +20,8 @@ function prefersDark() {
 
 export default function App() {
   const d = useDrill();
+  const c = useCodeDrill("fdfed", CODE_BANK, d.shuffleOn);
+  const isCode = d.course.type === "code";
   const [menuOpen, setMenuOpen] = useState(false);
   const dark = d.theme ? d.theme === "dark" : prefersDark();
 
@@ -24,6 +29,11 @@ export default function App() {
 
   /* keyboard: pick with 1-4 / a-d / T / F, Enter to confirm then advance */
   useEffect(() => {
+    if (d.locked) document.title = `${d.course.short} · Drill Room`;
+  }, [d.locked, d.course.short]);
+
+  useEffect(() => {
+    if (isCode) return undefined; /* code rounds handle their own keys */
     function onKey(e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const typing = e.target.tagName === "INPUT" || e.target.tagName === "SELECT";
@@ -54,9 +64,11 @@ export default function App() {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [d]);
+  }, [d, isCode]);
 
   const finished = d.queue.length > 0 && d.cursor >= d.queue.length;
+  /* the sidebar and top bar read from whichever engine the course uses */
+  const v = isCode ? c : d;
 
   return (
     <>
@@ -85,32 +97,38 @@ export default function App() {
           courseKey={d.courseKey}
           courseCaption={d.course.caption}
           onCourse={d.changeCourse}
-          counts={d.counts}
-          topicNames={d.topicNames}
-          mode={d.mode}
-          onMode={d.setMode}
-          topics={d.topics}
-          onToggleTopic={d.toggleTopic}
-          onAllTopics={() => d.setTopics([])}
+          courseShort={d.course.short}
+          locked={Boolean(d.locked)}
+          modes={isCode ? CODE_MODES : undefined}
+          topicsLabel={isCode ? "Files" : "Modules"}
+          counts={v.counts}
+          topicNames={v.topicNames}
+          mode={v.mode}
+          onMode={v.setMode}
+          topics={v.topics}
+          onToggleTopic={v.toggleTopic}
+          onAllTopics={() => v.setTopics([])}
           shuffleOn={d.shuffleOn}
           onShuffle={() => d.setShuffleOn(!d.shuffleOn)}
           dark={dark}
           onTheme={() => d.setTheme(dark ? "light" : "dark")}
-          onRestart={d.restart}
-          onClear={d.clearProgress}
+          onRestart={v.restart}
+          onClear={v.clearProgress}
         />
 
-        <main className="main">
+        <main className={`main${isCode ? " is-code" : ""}`}>
           <TopBar
-            onMenu={() => setMenuOpen((v) => !v)}
-            position={d.cursor + 1}
-            total={d.queue.length}
-            right={d.score.right}
-            wrong={d.score.wrong}
-            attempted={d.score.attempted}
+            onMenu={() => setMenuOpen((open) => !open)}
+            position={v.cursor + 1}
+            total={v.queue.length}
+            right={v.score.right}
+            wrong={v.score.wrong}
+            attempted={v.score.attempted}
           />
 
           <div className="wrap">
+            {isCode && <CodeStage c={c} />}
+            {!isCode && <>
             {d.queue.length === 0 && (
               <div className="done">
                 <h2>Nothing selected</h2>
@@ -205,6 +223,7 @@ export default function App() {
                 )}
               </div>
             )}
+            </>}
           </div>
         </main>
       </div>

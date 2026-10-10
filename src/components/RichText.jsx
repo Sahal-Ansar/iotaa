@@ -1,11 +1,13 @@
 import React, { useMemo } from "react";
 
-const TAGS = { b: "strong", i: "em", sub: "sub", sup: "sup" };
-const TOKEN = /<(\/?)(b|i|sub|sup|br)\s*\/?>/gi;
+const TAGS = { b: "strong", i: "em", sub: "sub", sup: "sup", code: "code" };
+const TOKEN = /<(\/?)(b|i|sub|sup|code|br)\s*\/?>/gi;
+const ENTITIES = { "&lt;": "<", "&gt;": ">", "&amp;": "&", "&quot;": '"', "&#39;": "'" };
+const decode = (s) => s.replace(/&(lt|gt|amp|quot|#39);/g, (m) => ENTITIES[m]);
 
 /**
  * The question bank carries a tiny, fixed set of inline tags (<b> <i> <sub>
- * <sup> <br>). Parsing them into real React elements keeps raw markup out of
+ * <sup> <code> <br>) plus the basic HTML entities. Parsing them into real React elements keeps raw markup out of
  * the DOM entirely, so nothing in the data can inject anything else.
  */
 function parse(source) {
@@ -22,7 +24,7 @@ function parse(source) {
     const name = rawName.toLowerCase();
 
     const text = source.slice(cursor, match.index);
-    if (text) top().children.push(text);
+    if (text) top().children.push(decode(text));
     cursor = match.index + raw.length;
     seq += 1;
 
@@ -37,7 +39,7 @@ function parse(source) {
     }
   }
   const tail = source.slice(cursor);
-  if (tail) top().children.push(tail);
+  if (tail) top().children.push(decode(tail));
   return root.children;
 }
 

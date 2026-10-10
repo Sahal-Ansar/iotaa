@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { COURSES, DEFAULT_COURSE, countsFor, getCourse } from "./courses.js";
+import { COURSES, DEFAULT_COURSE, LOCKED_COURSE, countsFor, getCourse } from "./courses.js";
 import { isBlankCorrect, shuffle } from "./grading.js";
 import { readSaved, writeSaved } from "./storage.js";
 
@@ -11,7 +11,7 @@ const uid = (course, kind, item) => `${course}:${kind}:${item.id}`;
 export function useDrill() {
   const saved = useRef(readSaved()).current;
 
-  const [courseKey, setCourseKey] = useState(saved.course || DEFAULT_COURSE);
+  const [courseKey, setCourseKey] = useState(LOCKED_COURSE || saved.course || DEFAULT_COURSE);
   const [mode, setMode] = useState(saved.mode || "mcq");
   const [topics, setTopics] = useState(
     Array.isArray(saved.topics) ? saved.topics : []
@@ -37,7 +37,9 @@ export function useDrill() {
   const counts = useMemo(() => countsFor(bank), [bank]);
 
   useEffect(() => {
-    writeSaved({ course: courseKey, mode, topics, shuffle: shuffleOn, theme, results });
+    /* the locked /fdfed page never overwrites the course chosen on "/" */
+    const savedCourse = LOCKED_COURSE ? readSaved().course || DEFAULT_COURSE : courseKey;
+    writeSaved({ course: savedCourse, mode, topics, shuffle: shuffleOn, theme, results });
   }, [courseKey, mode, topics, shuffleOn, theme, results]);
 
   useEffect(() => {
@@ -52,13 +54,14 @@ export function useDrill() {
   );
 
   const buildQueue = useCallback(() => {
+    if (course.type === "code") return []; /* handled by useCodeDrill */
     const kinds = mode === "mixed" ? ["mcq", "fitb", "tf"] : [mode];
     const list = [];
     kinds.forEach((kind) => {
       bank[kind].filter(inTopic).forEach((item) => list.push({ kind, item }));
     });
     return shuffleOn ? shuffle(list) : list;
-  }, [bank, mode, inTopic, shuffleOn]);
+  }, [course.type, bank, mode, inTopic, shuffleOn]);
 
   const clearCard = useCallback(() => {
     setAnswered(false);
@@ -208,7 +211,7 @@ export function useDrill() {
   }, []);
 
   return {
-    course, courseKey, changeCourse,
+    course, courseKey, changeCourse, locked: LOCKED_COURSE,
     topicNames, counts,
     mode, setMode,
     topics, setTopics, toggleTopic,

@@ -3,6 +3,7 @@ import { COURSES } from "../lib/useDrill.js";
 
 export default function Rail({
   open, onClose, courseKey, courseCaption, onCourse, counts, topicNames,
+  modes = MODES, topicsLabel = "Modules", locked = false, courseShort,
   mode, onMode, topics, onToggleTopic, onAllTopics,
   shuffleOn, onShuffle, dark, onTheme, onRestart, onClear
 }) {
@@ -33,7 +34,7 @@ export default function Rail({
         <div className="sub">{courseCaption}</div>
       </div>
 
-      <div className="rgroup">
+      {!locked && <div className="rgroup">
         <h2>Course</h2>
         <div className="courses" role="tablist" aria-label="Course">
           {COURSES.map((c) => (
@@ -49,12 +50,12 @@ export default function Rail({
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       <div className="rgroup">
         <h2>Drill</h2>
         <div className="modes">
-          {MODES.map((m) => (
+          {modes.map((m) => (
             <button
               key={m.key}
               type="button"
@@ -70,7 +71,7 @@ export default function Rail({
       </div>
 
       <div className="rgroup">
-        <h2>Modules</h2>
+        <h2>{topicsLabel}</h2>
         <div className="chips">
           {topicNames.map((label, i) => (
             <button
@@ -109,7 +110,7 @@ export default function Rail({
           Restart this set
         </button>
         <button type="button" className="tinybtn warn" onClick={() => { onClear(); onClose(); }}>
-          Clear {courseKey.toUpperCase()} progress
+          Clear {courseShort || courseKey.toUpperCase()} progress
         </button>
       </div>
     </aside>

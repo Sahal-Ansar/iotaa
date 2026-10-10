@@ -1,12 +1,14 @@
 # Drill Room
 
-Active-recall drills for two IIIT Sri City courses, in one app. Every question is
-drawn from the lecture decks — nothing outside the syllabus.
+Active-recall drills for IIIT Sri City courses, in one app. Every question is
+drawn from the course material — nothing outside the syllabus.
 
 | Course | Scope | MCQ | Blanks | T/F | Match | Short |
 |---|---|---:|---:|---:|---:|---:|
 | **IoT** — Internet of Things & Applications (Dr U Somalatha) | All modules | 180 | 70 | 30 | 5 | 46 |
 | **NLP** — Natural Language Processing (Shaik Mohammad Rafi B) | Units 1–3 | 164 | 60 | 30 | 5 | 42 |
+
+| **FDFED** — Redux Toolkit todo app (5 source files) | App.jsx, main.jsx, store.js, todoSlice.js, index.css | code rounds — see below |||||
 
 Switch courses from the sidebar. Progress, accuracy and the module filter are kept
 **separately per course** in `localStorage`, so a reload — or a switch and back —
@@ -28,6 +30,28 @@ questions you got wrong, and shows a per-module accuracy breakdown.
 
 Question IDs (`MCQ 047`, `BLANK 12`) match the printed question banks, so anything
 you keep missing is easy to look up.
+
+## FDFED code rounds
+
+Open **`/fdfed`** to go straight to the FDFED course with the course switcher
+hidden (that's the link to share). The goal is to know the five files by heart;
+`data.json` is not drilled.
+
+| Round | What you do |
+|---|---|
+| Study the files | Read each file with a note on every line; *Cover mode* blurs the code so you recite and tap to check |
+| Line fill | One line is missing in context — type it |
+| Token blanks | Words are blanked inside the code (Easy → Every word) |
+| Fix the bug | One line is wrong — tap it, then type the fix (43 bugs, including the real one in the source `App.jsx`) |
+| Line order | Shuffled lines, tap them back into order |
+| First letters | Each line shows only first letters — rebuild it |
+| Chain recall | Type a file top to bottom, one line per Enter |
+| Write from memory | Blank textarea, then a line-by-line diff |
+| Concept quiz | Why each line exists + "which file is this line from?" |
+| Mixed rounds | Line fill, blanks, bugs and quiz shuffled |
+
+Grading ignores spacing and quote style, and a trailing `;` or `,` is optional;
+every other token has to match.
 
 ## Run it locally
 
