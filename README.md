@@ -37,18 +37,19 @@ Open **`/fdfed`** to go straight to the FDFED course with the course switcher
 hidden (that's the link to share). The goal is to know the five files by heart;
 `data.json` is not drilled.
 
-| Round | What you do |
+28 rounds, grouped in the sidebar:
+
+| Group | Rounds |
 |---|---|
-| Study the files | Read each file with a note on every line; *Cover mode* blurs the code so you recite and tap to check |
-| Line fill | One line is missing in context — type it |
-| Token blanks | Words are blanked inside the code (Easy → Every word) |
-| Fix the bug | One line is wrong — tap it, then type the fix (43 bugs, including the real one in the source `App.jsx`) |
-| Line order | Shuffled lines, tap them back into order |
-| First letters | Each line shows only first letters — rebuild it |
-| Chain recall | Type a file top to bottom, one line per Enter |
-| Write from memory | Blank textarea, then a line-by-line diff |
-| Concept quiz | Why each line exists + "which file is this line from?" |
-| Mixed rounds | Line fill, blanks, bugs and quiz shuffled |
+| **Learn** | Study the files (per-line notes, cover mode) · Flashcards (self-marked) · Explain → code (note shown, type the line) |
+| **Recognise** | Real or fake · Pick the line (look-alike options) · What comes next · What does it do (line → explanation) · Concept quiz |
+| **Rebuild** | Line order · Unscramble the line (token chips) · Place the line (tap the gap) · Swapped lines |
+| **Recall** | Line fill · Finish the line · Line before (backwards) · Token blanks · Symbol blanks · First letters · Imports & exports · Chain recall |
+| **Repair** | Fix the bug (43 hand-written bugs, incl. the real one in the source `App.jsx`) · Find the missing line · Spot the intruder · Triple bug |
+| **Test** | Write from memory · Speed round (8 s per line) · Survival (3 lives, best run saved) · Mixed rounds |
+
+Look-alike lines are generated from a confusion list (`useState`↔`useEffect`,
+`reducer`↔`reducers`, `===`↔`==`, swapped arguments…) plus the hand-written bugs.
 
 Grading ignores spacing and quote style, and a trailing `;` or `,` is optional;
 every other token has to match.

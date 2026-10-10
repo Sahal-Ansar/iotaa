@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MIXED_KINDS, codeCounts } from "./codeBank.js";
+import { CAPS, MIXED_KINDS, SURVIVAL_KINDS, SURVIVAL_LIVES, codeCounts } from "./codeBank.js";
 import { shuffle } from "./grading.js";
 
 /*
@@ -8,7 +8,8 @@ import { shuffle } from "./grading.js";
  */
 
 const KEY = "drill-room.code.v1";
-const UNSHUFFLED = new Set(["study", "chain", "write"]);
+const UNSHUFFLED = new Set(["study", "chain", "write", "imports"]);
+const ALWAYS_SHUFFLED = new Set(["speed", "survival"]);
 
 function read() {
   try {
@@ -39,27 +40,32 @@ export function useCodeDrill(courseKey, bank, shuffleOn) {
   const [answered, setAnswered] = useState(false);
   const [nonce, setNonce] = useState(0);
   const [retryOnly, setRetryOnly] = useState(null);
+  const [lives, setLives] = useState(SURVIVAL_LIVES);
+  const [best, setBest] = useState(saved.best || {});
 
   const topicNames = bank.topics;
   const counts = useMemo(() => codeCounts(bank), [bank]);
   const uid = useCallback((kind, item) => `${courseKey}:${kind}:${item.id}`, [courseKey]);
 
   useEffect(() => {
-    write({ mode, topics, level, results });
-  }, [mode, topics, level, results]);
+    write({ mode, topics, level, results, best });
+  }, [mode, topics, level, results, best]);
 
   const buildQueue = useCallback(() => {
-    const kinds = mode === "mixed" ? MIXED_KINDS : [mode];
-    const list = [];
+    const kinds = mode === "mixed" ? MIXED_KINDS : mode === "survival" ? SURVIVAL_KINDS : [mode];
+    let list = [];
     kinds.forEach((kind) => {
       bank[kind]
         .filter((item) => topics.length === 0 || topics.includes(item.t))
         .forEach((item) => list.push({ kind, item }));
     });
-    return shuffleOn && !UNSHUFFLED.has(mode) ? shuffle(list) : list;
+    if (ALWAYS_SHUFFLED.has(mode) || (shuffleOn && !UNSHUFFLED.has(mode))) list = shuffle(list);
+    if (CAPS[mode]) list = list.slice(0, CAPS[mode]);
+    return list;
   }, [bank, mode, topics, shuffleOn]);
 
   const reset = useCallback((list) => {
+    setLives(SURVIVAL_LIVES);
     setQueue(list);
     setCursor(0);
     setAnswered(false);
@@ -84,23 +90,43 @@ export function useCodeDrill(courseKey, bank, shuffleOn) {
       if (!current) return;
       if (ok !== null) {
         setResults((prev) => ({ ...prev, [uid(current.kind, current.item)]: ok ? 1 : 0 }));
+        if (mode === "survival") {
+          if (ok) setStreak((s) => s + 1);
+          else setLives((l) => l - 1);
+        }
       }
       setAnswered(true);
     },
-    [current, uid]
+    [current, uid, mode]
   );
+
+  /* survival: cards survived this run, and the best run per file filter */
+  const [streak, setStreak] = useState(0);
+  const bestKey = topics.length ? [...topics].sort().join(",") : "all";
+  useEffect(() => {
+    if (mode === "survival" && streak > (best[bestKey] || 0)) {
+      setBest((b) => ({ ...b, [bestKey]: streak }));
+    }
+  }, [mode, streak, best, bestKey]);
+  useEffect(() => { setStreak(0); }, [queue]);
 
   const override = useCallback(() => {
     if (!current) return;
     setResults((prev) => ({ ...prev, [uid(current.kind, current.item)]: 1 }));
-  }, [current, uid]);
+    if (mode === "survival") { setLives((l) => l + 1); setStreak((s) => s + 1); }
+  }, [current, uid, mode]);
 
   const next = useCallback(() => {
+    if (mode === "survival" && lives <= 0) {
+      setCursor(queue.length);
+      setAnswered(false);
+      return;
+    }
     setCursor((c) => c + 1);
     setAnswered(false);
     setNonce((n) => n + 1);
     window.scrollTo({ top: 0 });
-  }, []);
+  }, [mode, lives, queue.length]);
 
   const score = useMemo(() => {
     let right = 0;
@@ -155,6 +181,7 @@ export function useCodeDrill(courseKey, bank, shuffleOn) {
     level, setLevel,
     queue, cursor, current, answered, nonce, retryOnly,
     score, finish, override, next, restart, retryWrong, clearProgress,
+    lives, streak, best: best[bestKey] || 0,
     hasWrong: score.wrong > 0
   };
 }

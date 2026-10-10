@@ -12,17 +12,18 @@ export const LEVELS = [
 ];
 
 const blankable = (t) => isWord(t) || isNumber(t) || /^["'`]/.test(t);
+const symbolic = (t) => !blankable(t) && t !== ";" && t !== ",";
 const unquote = (s) => s.trim().replace(/^["'`]|["'`]$/g, "");
 const KEYWORDLESS = new Set(["const", "return", "export", "import", "from"]);
 
 /* split each line into highlighted parts and decide which ones are blanks */
-function buildBlanks(lines, lang, ratio, seed) {
+function buildBlanks(lines, lang, ratio, seed, symbols) {
   const rand = rng(seed);
   const parts = lines.map((line) => highlight(line, lang));
   const slots = [];
   parts.forEach((row, li) =>
     row.forEach((p, pi) => {
-      if (p.cls && blankable(p.text)) slots.push({ li, pi, easy: KEYWORDLESS.has(p.text) });
+      if (p.cls && (symbols ? symbolic(p.text) : blankable(p.text))) slots.push({ li, pi, easy: KEYWORDLESS.has(p.text) });
     })
   );
   /* at easy levels prefer the meaningful words over boilerplate keywords */
@@ -41,13 +42,14 @@ function buildBlanks(lines, lang, ratio, seed) {
   return { parts, blanks };
 }
 
-export default function ClozeCard({ item, files, answered, onFinish, onNext, level, onLevel }) {
+export default function ClozeCard({ item, files, answered, onFinish, onNext, level, onLevel, variant = "words" }) {
+  const symbols = variant === "symbols";
   const file = files[item.f];
   const lines = file.lines.slice(item.from, item.to + 1);
   const ratio = (LEVELS.find((l) => l.key === level) || LEVELS[1]).ratio;
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const { parts, blanks } = useMemo(
-    () => buildBlanks(lines, file.lang, ratio, seed),
+    () => buildBlanks(lines, file.lang, ratio, seed, symbols),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [item.id, ratio, seed]
   );
@@ -63,7 +65,7 @@ export default function ClozeCard({ item, files, answered, onFinish, onNext, lev
 
   const check = () => {
     if (answered) return;
-    const m = blanks.map((ans, i) => unquote(vals[i] || "") === unquote(ans));
+    const m = blanks.map((ans, i) => (symbols ? (vals[i] || "").replace(/\s+/g, "") === ans : unquote(vals[i] || "") === unquote(ans)));
     setMarks(m);
     onFinish(m.every(Boolean));
   };
@@ -79,10 +81,10 @@ export default function ClozeCard({ item, files, answered, onFinish, onNext, lev
     <>
       <div className="toolrow">
         <span className="qtext small inline">
-          Fill every blank in <b>{file.name}</b> — {item.label}.
+          {symbols ? "Fill in the missing symbols" : "Fill every blank"} in <b>{file.name}</b> — {item.label}.
         </span>
         {!answered && (
-          <Seg value={level} label="Difficulty" options={LEVELS} onChange={(k) => { onLevel(k); setSeed((s) => s + 1); }} />
+          <Seg value={level} label="Difficulty" options={symbols ? LEVELS.map((l) => (l.key === "all" ? { ...l, label: "Every symbol" } : l)) : LEVELS} onChange={(k) => { onLevel(k); setSeed((s) => s + 1); }} />
         )}
       </div>
 
@@ -105,7 +107,7 @@ export default function ClozeCard({ item, files, answered, onFinish, onNext, lev
                   <input
                     ref={(el) => { refs.current[b] = el; }}
                     className={`code-in${state}`}
-                    style={{ width: `${Math.max(3, p.text.length) + 1.5}ch` }}
+                    style={{ width: `${Math.max(symbols ? 2 : 3, p.text.length) + 1.5}ch` }}
                     {...inputProps}
                     aria-label={`blank ${b + 1}`}
                     value={vals[b] || ""}

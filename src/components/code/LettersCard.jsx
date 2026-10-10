@@ -4,10 +4,16 @@ import Actions, { Hint, Key } from "../Actions.jsx";
 import { CodeBlock, Hl, inputProps } from "./CodeBits.jsx";
 import { firstLetters, indentOf, isMeaningful, sameLine } from "../../lib/code.js";
 
-export default function LettersCard({ item, files, answered, onFinish, onNext }) {
+const IMPORT_RE = /^\s*(import|export)\b/;
+
+/* variant "letters": first-letter scaffold on every line ·
+   "imports": only import/export lines are blank, no scaffold */
+export default function LettersCard({ item, files, answered, onFinish, onNext, variant = "letters" }) {
+  const imports = variant === "imports";
+  const pickLine = (l) => (imports ? IMPORT_RE.test(l) : isMeaningful(l));
   const file = files[item.f];
   const idx = [];
-  for (let i = item.from; i <= item.to; i++) if (isMeaningful(file.lines[i])) idx.push(i);
+  for (let i = item.from; i <= item.to; i++) if (pickLine(file.lines[i])) idx.push(i);
 
   const [vals, setVals] = useState({});
   const [marks, setMarks] = useState(null);
@@ -35,7 +41,9 @@ export default function LettersCard({ item, files, answered, onFinish, onNext })
   return (
     <>
       <p className="qtext small">
-        <b>{file.name}</b> — {item.label}. Each box shows only the first letter of every word. Type the full line.
+        {imports
+          ? <>Type every <b>import</b> and <b>export</b> line of <b>{file.name}</b>. The rest of the file is shown for context.</>
+          : <><b>{file.name}</b> — {item.label}. Each box shows only the first letter of every word. Type the full line.</>}
       </p>
 
       <CodeBlock
@@ -43,7 +51,7 @@ export default function LettersCard({ item, files, answered, onFinish, onNext })
         lang={file.lang}
         from={item.from}
         row={(i, text) => {
-          if (!isMeaningful(text)) return null;
+          if (!pickLine(text)) return null;
           const k = idx.indexOf(i);
           const state = marks ? (marks[i] ? " ok" : " no") : "";
           return {
@@ -54,7 +62,7 @@ export default function LettersCard({ item, files, answered, onFinish, onNext })
                   ref={(el) => { refs.current[i] = el; }}
                   className={`code-in wide${state}`}
                   {...inputProps}
-                  placeholder={firstLetters(text.trim(), file.lang)}
+                  placeholder={imports ? (/^\s*export/.test(text) ? "export …" : "import …") : firstLetters(text.trim(), file.lang)}
                   value={vals[i] || ""}
                   disabled={answered}
                   onChange={(e) => setVals((v) => ({ ...v, [i]: e.target.value }))}

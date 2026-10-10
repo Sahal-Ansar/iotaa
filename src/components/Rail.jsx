@@ -55,9 +55,10 @@ export default function Rail({
       <div className="rgroup">
         <h2>Drill</h2>
         <div className="modes">
-          {modes.map((m) => (
+          {modes.map((m, i) => (
+            <div key={m.key} className="modeitem">
+            {m.group && m.group !== modes[i - 1]?.group && <div className="modegroup">{m.group}</div>}
             <button
-              key={m.key}
               type="button"
               className="mode"
               aria-current={mode === m.key}
@@ -66,6 +67,7 @@ export default function Rail({
               <span>{m.label}</span>
               <span className="ct">{counts[m.key]}</span>
             </button>
+            </div>
           ))}
         </div>
       </div>

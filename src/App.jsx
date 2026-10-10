@@ -89,8 +89,9 @@ export default function App() {
         <rect width="100%" height="100%" filter="url(#speckle-noise)" />
       </svg>
 
-      <div className={`scrim${menuOpen ? " open" : ""}`} onClick={closeMenu} />
       <div className="shell">
+        {/* inside .shell so it shares the rail's stacking context (rail z 50 > scrim z 40) */}
+        <div className={`scrim${menuOpen ? " open" : ""}`} onClick={closeMenu} />
         <Rail
           open={menuOpen}
           onClose={closeMenu}

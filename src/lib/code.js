@@ -174,3 +174,94 @@ export function shuffled(list, rand = Math.random) {
   }
   return a;
 }
+
+/* ---------------------------------------------------------------- mutations */
+
+/* line → parts that keep whitespace, so a swapped token rebuilds the line exactly */
+export function splitParts(line, lang) {
+  const re = new RegExp(`\\s+|${tokenRe(lang).source}`, "g");
+  return (String(line).match(re) || []).map((text) => ({ text, tok: !/^\s+$/.test(text) }));
+}
+
+/* plausible look-alikes: the kind of slip you make when you half-remember a line */
+const SWAPS = {
+  useState: ["useEffect", "useRef"], useSelector: ["useStore", "useState"], useDispatch: ["useAction", "useStore"],
+  react: ["react-dom", "react-redux"], "react-redux": ["react", "redux"], "react-dom/client": ["react-dom", "react/client"],
+  "@reduxjs/toolkit": ["redux", "react-redux"], "./todoSlice": ["./store", "./todos"], "./store": ["./todoSlice", "./reducer"],
+  "./App": ["./app", "./main"], "./index.css": ["./App.css", "./style.css"],
+  todos: ["todo", "items"], text: ["value", "title"], setText: ["setValue", "updateText"],
+  addTodo: ["createTodo", "toggleTodo"], toggleTodo: ["deleteTodo", "updateTodo"], deleteTodo: ["removeTodo", "addTodo"],
+  dispatch: ["useDispatch", "store"], state: ["action", "store"], action: ["state", "payload"], payload: ["value", "data"],
+  reducer: ["reducers", "slice"], reducers: ["reducer", "actions"], actions: ["action", "reducers"],
+  initialState: ["state", "initial"], name: ["key", "id"], push: ["add", "concat"], find: ["filter", "findIndex"],
+  filter: ["find", "map"], map: ["forEach", "filter"], id: ["key", "index"], key: ["id", "ref"], done: ["completed", "checked"],
+  trim: ["strip", "length"], target: ["currentTarget", "value"], value: ["defaultValue", "text"],
+  onChange: ["onInput", "onClick"], onClick: ["onPress", "onChange"], className: ["class", "style"],
+  textDecoration: ["textStyle", "decoration"], "line-through": ["underline", "strike"], none: ["normal", "hidden"],
+  container: ["wrapper", "app"], TODOS: ["Todos", "TODO"], Add: ["Submit", "Save"], X: ["Delete", "x"],
+  createRoot: ["render", "hydrateRoot"], render: ["mount", "create"], getElementById: ["querySelector", "getElement"],
+  root: ["app", "main"], Provider: ["Store", "Context"], store: ["state", "todoStore"],
+  configureStore: ["createStore", "createSlice"], todoReducer: ["todoSlice", "reducer"],
+  createSlice: ["createReducer", "configureStore"], todoSlice: ["todoReducer", "slice"],
+  Date: ["Math", "Time"], now: ["random", "today"], const: ["let", "var"], App: ["Main", "Todo"],
+  "sans-serif": ["serif", "monospace"], flex: ["block", "grid"], "justify-content": ["align-items", "text-align"],
+  center: ["middle", "left"], "400px": ["500px", "40px"], width: ["max-width", "height"],
+  "font-family": ["font", "font-style"], display: ["position", "align"], body: ["html", "main"],
+  false: ["true", "null"], true: ["false"], h1: ["h2", "header"], ul: ["ol", "div"], li: ["ul", "div"],
+  span: ["p", "label"], div: ["section", "main"], return: ["break"], if: ["while"], default: ["const"]
+};
+const OPS = { "===": ["==", "!=="], "!==": ["===", "!="], "==": ["==="], "=>": ["="] };
+const DROPPABLE = new Set(["!", "default", "new"]);
+
+export function mutations(line, lang, { fallback = false } = {}) {
+  const parts = splitParts(line, lang);
+  const rebuild = (edits) => parts.map((p, j) => (j in edits ? edits[j] : p.text)).join("");
+  const nextTok = (i) => { for (let j = i + 1; j < parts.length; j++) if (parts[j].tok) return j; return -1; };
+  const out = [];
+
+  parts.forEach((p, i) => {
+    if (!p.tok) return;
+    const t = p.text;
+    const quoted = /^["'`]/.test(t) && t.length > 1;
+    const core = quoted ? t.slice(1, -1) : t;
+    [].concat(SWAPS[core] || []).forEach((alt) => out.push(rebuild({ [i]: quoted ? `${t[0]}${alt}${t[0]}` : alt })));
+    (OPS[t] || []).forEach((alt) => out.push(rebuild({ [i]: alt })));
+    if (DROPPABLE.has(t)) out.push(rebuild({ [i]: "", [i + 1]: parts[i + 1] && !parts[i + 1].tok && t !== "!" ? "" : parts[i + 1]?.text ?? "" }));
+    const j = nextTok(i);
+    if (t === "(" && j !== -1 && parts[j].text === ")") out.push(rebuild({ [i]: "", [j]: "" }));
+    /* (a, b) → (b, a) */
+    if (/^[A-Za-z_$]/.test(t) && j !== -1 && parts[j].text === ",") {
+      const k = nextTok(j);
+      if (k !== -1 && /^[A-Za-z_$]/.test(parts[k].text) && parts[k].text !== t) {
+        out.push(rebuild({ [i]: parts[k].text, [k]: t }));
+      }
+    }
+  });
+
+  /* last resort for short lines: drop one bracket or slash */
+  if (fallback) {
+    parts.forEach((p, i) => {
+      if (p.tok && /^[(){}[\]<>/]$/.test(p.text)) out.push(rebuild({ [i]: "" }));
+    });
+  }
+
+  const seen = new Set([lineKey(line, lang)]);
+  return out.filter((l) => {
+    const k = lineKey(l, lang);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+/* gaps where re-inserting line n gives back the same file (blank lines aside) */
+export function equivalentGaps(lines, n, lang) {
+  const target = lines.filter((l) => !isBlank(l)).map((l) => lineKey(l, lang)).join("\n");
+  const rest = lines.filter((_, i) => i !== n);
+  const out = [];
+  for (let g = 0; g <= rest.length; g++) {
+    const trial = [...rest.slice(0, g), lines[n], ...rest.slice(g)];
+    if (trial.filter((l) => !isBlank(l)).map((l) => lineKey(l, lang)).join("\n") === target) out.push(g);
+  }
+  return out;
+}

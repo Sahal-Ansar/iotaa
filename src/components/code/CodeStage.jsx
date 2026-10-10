@@ -10,22 +10,54 @@ import LettersCard from "./LettersCard.jsx";
 import ChainCard from "./ChainCard.jsx";
 import WriteCard from "./WriteCard.jsx";
 import QuizCard from "./QuizCard.jsx";
+import RealFakeCard from "./RealFakeCard.jsx";
+import PickLineCard from "./PickLineCard.jsx";
+import WhichNoteCard from "./WhichNoteCard.jsx";
+import ExplainCard from "./ExplainCard.jsx";
+import FlashCard from "./FlashCard.jsx";
+import UnscrambleCard from "./UnscrambleCard.jsx";
+import GapCard from "./GapCard.jsx";
+import SwapCard from "./SwapCard.jsx";
+import IntruderCard from "./IntruderCard.jsx";
+import TripleBugCard from "./TripleBugCard.jsx";
+import { SURVIVAL_LIVES } from "../../lib/codeBank.js";
 
+/* kind → [component, extra props] */
 const CARDS = {
-  study: StudyCard,
-  line: LineCard,
-  cloze: ClozeCard,
-  bug: BugCard,
-  order: OrderCard,
-  letters: LettersCard,
-  chain: ChainCard,
-  write: WriteCard,
-  quiz: QuizCard
+  study: [StudyCard],
+  flash: [FlashCard],
+  explain: [ExplainCard],
+  real: [RealFakeCard],
+  pick: [PickLineCard, { variant: "pick" }],
+  next: [PickLineCard, { variant: "next" }],
+  whichnote: [WhichNoteCard],
+  quiz: [QuizCard],
+  order: [OrderCard],
+  unscramble: [UnscrambleCard],
+  place: [GapCard, { variant: "place" }],
+  swap: [SwapCard],
+  line: [LineCard, { variant: "fill" }],
+  finish: [LineCard, { variant: "finish" }],
+  prev: [LineCard, { variant: "prev" }],
+  cloze: [ClozeCard, { variant: "words" }],
+  symbols: [ClozeCard, { variant: "symbols" }],
+  letters: [LettersCard, { variant: "letters" }],
+  imports: [LettersCard, { variant: "imports" }],
+  chain: [ChainCard],
+  bug: [BugCard],
+  missing: [GapCard, { variant: "missing" }],
+  intruder: [IntruderCard],
+  triple: [TripleBugCard],
+  write: [WriteCard],
+  speed: [RealFakeCard, { timed: 8000 }]
 };
+
+/* rounds where showing the line number would give the answer away */
+const HIDE_LINE = new Set(["place", "missing", "next", "prev"]);
 
 function where(kind, item, files) {
   const name = files[item.t].name;
-  if (kind === "line") return `${name} · line ${item.n + 1}`;
+  if (item.n !== undefined && !HIDE_LINE.has(kind)) return `${name} · line ${item.n + 1}`;
   if (item.label) return `${name} · ${item.label}`;
   return name;
 }
@@ -62,6 +94,19 @@ export default function CodeStage({ c }) {
   }
 
   if (finished) {
+    if (c.mode === "survival") {
+      return (
+        <div className="done">
+          <div className="bignum">{c.streak}</div>
+          <h2>{c.lives <= 0 ? "Out of lives" : "You cleared the whole deck"}</h2>
+          <p>{c.streak} right before {c.lives <= 0 ? "the third miss" : "running out of cards"}. Best run: {c.best}.</p>
+          <div className="acts center">
+            <button type="button" className="btn" onClick={c.restart}>Go again</button>
+            {c.hasWrong && <button type="button" className="btn ghost" onClick={c.retryWrong}>Drill the misses</button>}
+          </div>
+        </div>
+      );
+    }
     if (c.mode === "study") {
       return (
         <div className="done">
@@ -87,16 +132,21 @@ export default function CodeStage({ c }) {
   }
 
   const { kind, item } = c.current;
-  const Card = CARDS[kind];
+  const [Card, extra = {}] = CARDS[kind];
 
   return (
     <>
-      {c.cursor === 0 && mode && <p className="roundblurb"><b>{mode.label}.</b> {mode.blurb}</p>}
+      {c.cursor === 0 && mode && <p className="roundblurb"><b>{mode.label}.</b> {mode.blurb}{c.mode === "survival" && c.best ? ` Best run: ${c.best}.` : ""}</p>}
       <div className="card codecard">
         <div className="meta">
           <span className="qid">{CODE_PREFIX[kind]}</span>
           <span className="tag">{where(kind, item, files)}</span>
           {c.retryOnly !== null && <span className="tag retry">retry set</span>}
+          {c.mode === "survival" && (
+            <span className="tag lives" aria-label={`${c.lives} lives left`}>
+              {"♥".repeat(Math.max(0, c.lives))}{"♡".repeat(Math.max(0, SURVIVAL_LIVES - c.lives))} · {c.streak}
+            </span>
+          )}
         </div>
         <Card
           key={`${item.id}-${c.nonce}`}
@@ -109,6 +159,7 @@ export default function CodeStage({ c }) {
           level={c.level}
           onLevel={c.setLevel}
           isLast={c.cursor === c.queue.length - 1}
+          {...extra}
         />
       </div>
     </>
