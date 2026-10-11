@@ -22,8 +22,8 @@ export default function QuizCard({ item, answered, onFinish, onNext }) {
       if (answered || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
       if (e.key === "Enter" && pick) { e.preventDefault(); e.stopPropagation(); confirm(); return; }
-      const n = "12345".indexOf(e.key);
-      const l = "abcde".indexOf(e.key.toLowerCase());
+      const n = "123456".indexOf(e.key);
+      const l = "abcdef".indexOf(e.key.toLowerCase());
       const i = n !== -1 ? n : l;
       if (i !== -1 && item.opts[i]) setPick(item.opts[i].k);
     }

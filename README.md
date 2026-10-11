@@ -8,7 +8,7 @@ drawn from the course material — nothing outside the syllabus.
 | **IoT** — Internet of Things & Applications (Dr U Somalatha) | All modules | 180 | 70 | 30 | 5 | 46 |
 | **NLP** — Natural Language Processing (Shaik Mohammad Rafi B) | Units 1–3 | 164 | 60 | 30 | 5 | 42 |
 
-| **FDFED** — Redux Toolkit todo app (5 source files) | App.jsx, main.jsx, store.js, todoSlice.js, index.css | code rounds — see below |||||
+| **FDFED** — Problem 3, employee list (6 component files) | App.jsx, SearchInput.jsx, RoleSelect.jsx, ActiveCheckbox.jsx, EmployeeList.jsx, EmployeeCard.jsx | code rounds — see below |||||
 
 Switch courses from the sidebar. Progress, accuracy and the module filter are kept
 **separately per course** in `localStorage`, so a reload — or a switch and back —
@@ -35,7 +35,7 @@ you keep missing is easy to look up.
 
 Open **`/fdfed`** to go straight to the FDFED course with the course switcher
 hidden (that's the link to share). The goal is to know the five files by heart;
-`data.json` is not drilled.
+`employees.json` is data, so it is summarised in Study but not drilled.
 
 28 rounds, grouped in the sidebar:
 
@@ -45,14 +45,14 @@ hidden (that's the link to share). The goal is to know the five files by heart;
 | **Recognise** | Real or fake · Pick the line (look-alike options) · What comes next · What does it do (line → explanation) · Concept quiz |
 | **Rebuild** | Line order · Unscramble the line (token chips) · Place the line (tap the gap) · Swapped lines |
 | **Recall** | Line fill · Finish the line · Line before (backwards) · Token blanks · Symbol blanks · First letters · Imports & exports · Chain recall |
-| **Repair** | Fix the bug (43 hand-written bugs, incl. the real one in the source `App.jsx`) · Find the missing line · Spot the intruder · Triple bug |
+| **Repair** | Fix the bug (66 hand-written bugs) · Find the missing line · Spot the intruder · Triple bug |
 | **Test** | Write from memory · Speed round (8 s per line) · Survival (3 lives, best run saved) · Mixed rounds |
 
 Look-alike lines are generated from a confusion list (`useState`↔`useEffect`,
 `reducer`↔`reducers`, `===`↔`==`, swapped arguments…) plus the hand-written bugs.
 
 Grading ignores spacing and quote style, and a trailing `;` or `,` is optional;
-every other token has to match.
+every other token has to match. The `₹` in EmployeeCard is optional when typing.
 
 ## Run it locally
 

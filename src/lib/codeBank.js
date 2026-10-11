@@ -1,4 +1,6 @@
-import { FILES, BLANK_CHUNKS, ORDER_CHUNKS, BUGS, QUIZ } from "../data/fdfed.js";
+import { FILES, FLOW, BLANK_CHUNKS, ORDER_CHUNKS, BUGS, QUIZ } from "../data/fdfed.js";
+
+export { FLOW };
 import { isBlank, isMeaningful, lineKey, mutations, rng, shuffled, tokens } from "./code.js";
 
 /*
@@ -28,7 +30,7 @@ const chain = FILES.map((f, i) => ({ id: `n${i}`, t: i, f: i }));
 const write = FILES.map((f, i) => ({ id: `w${i}`, t: i, f: i }));
 
 /* concept questions + generated "which file is this line from?" questions */
-const LETTERS = ["a", "b", "c", "d", "e"];
+const LETTERS = ["a", "b", "c", "d", "e", "f"];
 const quiz = QUIZ.map((q, i) => ({
   id: `q${i}`,
   t: q.f,
@@ -108,22 +110,24 @@ const NOTE_FILES = FILES.map((file) => file.notes.filter(Boolean).length >= 4);
 export const INTRUDERS = {
   js: [
     'import { useEffect } from "react";',
-    "const [todos, setTodos] = useState([]);",
-    "console.log(todos);",
-    "return state;",
-    "export default store;",
+    "const [employees, setEmployees] = useState([]);",
+    "console.log(filteredEmployees);",
+    '<option value="Intern">Intern</option>',
+    "const matchesSalary = emp.salary > 50000;",
+    "<p>Showing {employees.length} results</p>",
     'import "./App.css";',
-    "state.splice(index, 1);",
-    "const store = createStore(todoReducer);",
-    "useEffect(() => {}, []);",
-    "<p>{todos.length} left</p>",
-    'import { combineReducers } from "redux";',
-    "clearDone: (state) => state.filter((x) => !x.done),",
-    "export const selectTodos = (state) => state.todos;",
-    "ReactDOM.render(<App />, root);",
-    "const handleDelete = (id) => dispatch(deleteTodo(id));",
-    "<form onSubmit={handleAdd}>"
+    "export { App };",
+    "const sorted = [...employees].sort((a, b) => a.salary - b.salary);",
+    '<button onClick={() => setSearchText("")}>Clear</button>',
+    "useEffect(() => {}, [searchText]);",
+    "<span>{employee.id}</span>",
+    'name="role"',
+    "const handleChange = (e) => setRole(e.target.value);",
+    "<h2>Filters</h2>",
+    'import EmployeeCard from "./EmployeeCard";',
+    "if (!employees) return null;"
   ],
+
   css: [
     "h1 { color: navy; }",
     "ul { list-style: none; }",
@@ -158,7 +162,7 @@ ORDER_CHUNKS.forEach((c, i) => {
   for (let n = c.from; n <= c.to; n++) if (!isBlank(FILES[c.f].lines[n])) distinct.add(lineKey(FILES[c.f].lines[n], FILES[c.f].lang));
   if (distinct.size >= 4) [0, 1].forEach((r) => swap.push({ id: `sw${i}-${r}`, t: c.f, ...c }));
 });
-const symbols = chunkItems(BLANK_CHUNKS.filter((c) => c.f !== 4), "sy");
+const symbols = chunkItems(BLANK_CHUNKS.filter((c) => FILES[c.f].lang !== "css"), "sy");
 const imports = FILES.map((file, f) => ({ id: `im${f}`, t: f, f, from: 0, to: file.lines.length - 1, label: "imports & exports" }))
   .filter((it) => FILES[it.f].lines.some((l) => /^\s*(import|export)\b/.test(l)));
 const intruder = [];

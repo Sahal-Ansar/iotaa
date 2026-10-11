@@ -36,10 +36,10 @@ export const COURSES = [
   },
   {
     key: "fdfed",
-    label: "FDFED · Redux todo app",
+    label: "FDFED · Employee list",
     short: "FDFED",
     type: "code",
-    caption: "FDFED · Redux todo · learn the code by heart",
+    caption: "FDFED · Problem 3 employee list · learn it by heart",
     bank: CODE_BANK
   }
 ];

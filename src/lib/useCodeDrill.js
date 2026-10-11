@@ -7,7 +7,8 @@ import { shuffle } from "./grading.js";
  * courses are untouched; progress lives under its own storage key.
  */
 
-const KEY = "drill-room.code.v1";
+/* v2: Problem 3 (employee list) replaced the todo app, so old progress is dropped */
+const KEY = "drill-room.code.v2";
 const UNSHUFFLED = new Set(["study", "chain", "write", "imports"]);
 const ALWAYS_SHUFFLED = new Set(["speed", "survival"]);
 

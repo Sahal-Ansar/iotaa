@@ -30,7 +30,8 @@ function normTok(t) {
 
 /* tokens with the forgivable differences removed */
 export function normTokens(line, lang) {
-  let list = tokens(line, lang).map(normTok);
+  /* ₹ is hard to type, so it is optional */
+  let list = tokens(line, lang).filter((t) => t !== "₹").map(normTok);
   if (lang === "css") list = list.filter((t, i) => !(t === ";" && list[i + 1] === "}"));
   while (list.length && (list[list.length - 1] === ";" || list[list.length - 1] === ",")) list.pop();
   return list;
@@ -185,30 +186,30 @@ export function splitParts(line, lang) {
 
 /* plausible look-alikes: the kind of slip you make when you half-remember a line */
 const SWAPS = {
-  useState: ["useEffect", "useRef"], useSelector: ["useStore", "useState"], useDispatch: ["useAction", "useStore"],
-  react: ["react-dom", "react-redux"], "react-redux": ["react", "redux"], "react-dom/client": ["react-dom", "react/client"],
-  "@reduxjs/toolkit": ["redux", "react-redux"], "./todoSlice": ["./store", "./todos"], "./store": ["./todoSlice", "./reducer"],
-  "./App": ["./app", "./main"], "./index.css": ["./App.css", "./style.css"],
-  todos: ["todo", "items"], text: ["value", "title"], setText: ["setValue", "updateText"],
-  addTodo: ["createTodo", "toggleTodo"], toggleTodo: ["deleteTodo", "updateTodo"], deleteTodo: ["removeTodo", "addTodo"],
-  dispatch: ["useDispatch", "store"], state: ["action", "store"], action: ["state", "payload"], payload: ["value", "data"],
-  reducer: ["reducers", "slice"], reducers: ["reducer", "actions"], actions: ["action", "reducers"],
-  initialState: ["state", "initial"], name: ["key", "id"], push: ["add", "concat"], find: ["filter", "findIndex"],
-  filter: ["find", "map"], map: ["forEach", "filter"], id: ["key", "index"], key: ["id", "ref"], done: ["completed", "checked"],
-  trim: ["strip", "length"], target: ["currentTarget", "value"], value: ["defaultValue", "text"],
-  onChange: ["onInput", "onClick"], onClick: ["onPress", "onChange"], className: ["class", "style"],
-  textDecoration: ["textStyle", "decoration"], "line-through": ["underline", "strike"], none: ["normal", "hidden"],
-  container: ["wrapper", "app"], TODOS: ["Todos", "TODO"], Add: ["Submit", "Save"], X: ["Delete", "x"],
-  createRoot: ["render", "hydrateRoot"], render: ["mount", "create"], getElementById: ["querySelector", "getElement"],
-  root: ["app", "main"], Provider: ["Store", "Context"], store: ["state", "todoStore"],
-  configureStore: ["createStore", "createSlice"], todoReducer: ["todoSlice", "reducer"],
-  createSlice: ["createReducer", "configureStore"], todoSlice: ["todoReducer", "slice"],
-  Date: ["Math", "Time"], now: ["random", "today"], const: ["let", "var"], App: ["Main", "Todo"],
-  "sans-serif": ["serif", "monospace"], flex: ["block", "grid"], "justify-content": ["align-items", "text-align"],
-  center: ["middle", "left"], "400px": ["500px", "40px"], width: ["max-width", "height"],
-  "font-family": ["font", "font-style"], display: ["position", "align"], body: ["html", "main"],
-  false: ["true", "null"], true: ["false"], h1: ["h2", "header"], ul: ["ol", "div"], li: ["ul", "div"],
-  span: ["p", "label"], div: ["section", "main"], return: ["break"], if: ["while"], default: ["const"]
+  useState: ["useEffect", "useRef"], react: ["react-dom", "react-redux"],
+  "./employees.json": ["./employees", "./data.json"], "./SearchInput": ["./searchInput", "./Search"],
+  "./RoleSelect": ["./roleSelect", "./Select"], "./ActiveCheckbox": ["./Checkbox", "./activeCheckbox"],
+  "./EmployeeList": ["./Employees", "./employeeList"], "./EmployeeCard": ["./EmployeeItem", "./Card"],
+  employees: ["employee", "data"], employee: ["emp", "employees"], emp: ["employee", "e"],
+  searchText: ["search", "searchTerm"], setSearchText: ["setSearch", "setText"],
+  role: ["roles", "type"], setRole: ["setRoles", "changeRole"],
+  activeOnly: ["isActive", "onlyActive"], setActiveOnly: ["setActive", "toggleActive"],
+  filteredEmployees: ["filtered", "employeeList"], filter: ["map", "find"], map: ["forEach", "filter"],
+  matchesName: ["nameMatch", "matchName"], matchesRole: ["roleMatch", "matchRole"], matchesActive: ["activeMatch", "isActive"],
+  name: ["Name", "title"], toLowerCase: ["toUpperCase", "toLocaleString"], includes: ["startsWith", "indexOf"],
+  active: ["isActive", "status"], salary: ["pay", "Salary"], id: ["key", "index"], key: ["id", "ref"],
+  length: ["size", "count"], value: ["defaultValue", "text"], checked: ["value", "selected"],
+  onChange: ["onClick", "onInput"], target: ["currentTarget", "value"], placeholder: ["label", "title"],
+  type: ["kind", "name"], text: ["search", "string"], checkbox: ["check", "radio"],
+  All: ["all", "Any"], Developer: ["Developers", "developer"], Designer: ["Designers", "designer"], Manager: ["Managers", "manager"],
+  Active: ["Yes", "active"], Inactive: ["No", "Disabled"], "Search by name": ["Search", "Search employees"],
+  Employee: ["Employees", "Staff"], List: ["Directory", "Table"], Total: ["Showing", "Count"], found: ["available", "matched"],
+  Show: ["Hide", "Display"], only: ["all", "just"], select: ["option", "input"], option: ["select", "li"],
+  label: ["span", "div"], input: ["textarea", "select"], ul: ["ol", "div"], li: ["div", "p"], p: ["span", "h2"],
+  h1: ["h2", "p"], div: ["section", "main"], SearchInput: ["Search", "SearchBox"], RoleSelect: ["RoleFilter", "Select"],
+  ActiveCheckbox: ["Checkbox", "ActiveToggle"], EmployeeList: ["Employees", "EmployeeTable"], EmployeeCard: ["EmployeeRow", "Card"],
+  App: ["Main", "Employees"], function: ["const"], const: ["let", "var"], false: ["true", "null"], true: ["false"],
+  return: ["break"], default: ["const"], "0": ["1"]
 };
 const OPS = { "===": ["==", "!=="], "!==": ["===", "!="], "==": ["==="], "=>": ["="] };
 const DROPPABLE = new Set(["!", "default", "new"]);

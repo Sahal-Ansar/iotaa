@@ -2,14 +2,7 @@ import { useState } from "react";
 import RichText from "../RichText.jsx";
 import Actions, { Hint, Key } from "../Actions.jsx";
 import { CodeBlock } from "./CodeBits.jsx";
-
-const FLOW = [
-  "<b>main.jsx</b> renders <code>&lt;App /&gt;</code> inside <code>&lt;Provider store={store}&gt;</code> so every component can reach the store.",
-  "<b>store.js</b> builds the store with <code>configureStore</code> and registers the slice reducer under the key <b>todos</b>.",
-  "<b>todoSlice.js</b> defines the state (<code>[]</code>), the three reducers, and exports the action creators + the reducer.",
-  "<b>App.jsx</b> reads <code>state.todos</code> with useSelector and sends <code>addTodo / toggleTodo / deleteTodo</code> with dispatch.",
-  "<b>index.css</b> centres the page and sets the container width."
-];
+import { FLOW } from "../../lib/codeBank.js";
 
 export default function StudyCard({ item, files, onNext, isLast }) {
   const file = files[item.f];
@@ -77,7 +70,7 @@ export default function StudyCard({ item, files, onNext, isLast }) {
 
       <div className="flowbox">
         <button type="button" className="flowtoggle" aria-expanded={flow} onClick={() => setFlow((v) => !v)}>
-          How the five files connect <span aria-hidden="true">{flow ? "−" : "+"}</span>
+          How the files connect <span aria-hidden="true">{flow ? "−" : "+"}</span>
         </button>
         {flow && (
           <ol>
