@@ -3,13 +3,12 @@ import RichText from "../RichText.jsx";
 import Feedback from "../Feedback.jsx";
 import Actions, { Hint, Key } from "../Actions.jsx";
 import { CodeBlock, Hl, TokenDiff } from "./CodeBits.jsx";
-import { distractors } from "../../lib/codeBank.js";
 
 /* Real or fake — also the speed round when `timed` is set */
-export default function RealFakeCard({ item, files, answered, onFinish, onNext, timed = 0 }) {
+export default function RealFakeCard({ item, files, bank, answered, onFinish, onNext, timed = 0 }) {
   const file = files[item.f];
   const real = file.lines[item.n];
-  const [fake] = useState(() => (Math.random() < 0.5 ? distractors(item.f, item.n, 1)[0] || null : null));
+  const [fake] = useState(() => (Math.random() < 0.5 ? bank.distractors(item.f, item.n, 1)[0] || null : null));
   const shown = fake ? fake.text : real;
   const [said, setSaid] = useState(null);
   const [timeUp, setTimeUp] = useState(false);

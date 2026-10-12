@@ -3,12 +3,11 @@ import RichText from "../RichText.jsx";
 import Feedback from "../Feedback.jsx";
 import Actions, { Hint, Key } from "../Actions.jsx";
 import { CodeBlock, OptionList, useChoiceKeys } from "./CodeBits.jsx";
-import { distractors } from "../../lib/codeBank.js";
 import { isMeaningful, lineKey, shuffled } from "../../lib/code.js";
 
 /* variant "pick": choose the exact line among look-alikes.
    variant "next": choose which line comes next. */
-export default function PickLineCard({ item, files, answered, onFinish, onNext, variant = "pick" }) {
+export default function PickLineCard({ item, files, bank, answered, onFinish, onNext, variant = "pick" }) {
   const file = files[item.f];
   const real = file.lines[item.n];
 
@@ -27,7 +26,7 @@ export default function PickLineCard({ item, files, answered, onFinish, onNext, 
         if (!seen.has(k) && others.length < 3) { seen.add(k); others.push({ text }); }
       });
     } else {
-      others = distractors(item.f, item.n, 3);
+      others = bank.distractors(item.f, item.n, 3);
     }
     return shuffled([{ text: real, right: true }, ...others]);
   });

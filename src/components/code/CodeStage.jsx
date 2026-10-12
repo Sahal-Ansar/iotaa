@@ -152,6 +152,7 @@ export default function CodeStage({ c }) {
           key={`${item.id}-${c.nonce}`}
           item={item}
           files={files}
+          bank={c.bank}
           answered={c.answered}
           onFinish={c.finish}
           onNext={c.next}

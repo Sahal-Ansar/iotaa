@@ -2,11 +2,11 @@ import { useState } from "react";
 import Feedback from "../Feedback.jsx";
 import Actions, { Hint, Key } from "../Actions.jsx";
 import { CodeBlock } from "./CodeBits.jsx";
-import { INTRUDERS, langGroup } from "../../lib/codeBank.js";
+import { langGroup } from "../../lib/codeBank.js";
 import { isBlank, isMeaningful, lineKey } from "../../lib/code.js";
 
 /* one extra line was slipped into the file */
-export default function IntruderCard({ item, files, answered, onFinish, onNext }) {
+export default function IntruderCard({ item, files, bank, answered, onFinish, onNext }) {
   const file = files[item.f];
   const [setup] = useState(() => {
     const own = new Set(file.lines.map((l) => lineKey(l, file.lang)));
@@ -14,7 +14,7 @@ export default function IntruderCard({ item, files, answered, onFinish, onNext }
     const fromOthers = files
       .filter((f, i) => i !== item.f && langGroup(f.lang) === group)
       .flatMap((f) => f.lines.filter(isMeaningful).map((l) => l.trim()));
-    const pool = [...INTRUDERS[group], ...fromOthers].filter((l) => !own.has(lineKey(l, file.lang)));
+    const pool = [...bank.intruders[group], ...fromOthers].filter((l) => !own.has(lineKey(l, file.lang)));
     const text = pool[Math.floor(Math.random() * pool.length)];
     const at = 1 + Math.floor(Math.random() * file.lines.length); /* never above line 1 */
     const ref = file.lines[Math.min(at, file.lines.length - 1)] || "";

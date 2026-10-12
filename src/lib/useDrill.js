@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { COURSES, DEFAULT_COURSE, LOCKED_COURSE, countsFor, getCourse } from "./courses.js";
+import { COURSES, DEFAULT_COURSE, LOCKED_COURSES, countsFor, getCourse } from "./courses.js";
 import { isBlankCorrect, shuffle } from "./grading.js";
 import { readSaved, writeSaved } from "./storage.js";
 
@@ -11,7 +11,11 @@ const uid = (course, kind, item) => `${course}:${kind}:${item.id}`;
 export function useDrill() {
   const saved = useRef(readSaved()).current;
 
-  const [courseKey, setCourseKey] = useState(LOCKED_COURSE || saved.course || DEFAULT_COURSE);
+  const [courseKey, setCourseKey] = useState(() =>
+    LOCKED_COURSES
+      ? (LOCKED_COURSES.includes(saved.lockCourse) ? saved.lockCourse : LOCKED_COURSES[0])
+      : saved.course || DEFAULT_COURSE
+  );
   const [mode, setMode] = useState(saved.mode || "mcq");
   const [topics, setTopics] = useState(
     Array.isArray(saved.topics) ? saved.topics : []
@@ -37,9 +41,13 @@ export function useDrill() {
   const counts = useMemo(() => countsFor(bank), [bank]);
 
   useEffect(() => {
-    /* the locked /fdfed page never overwrites the course chosen on "/" */
-    const savedCourse = LOCKED_COURSE ? readSaved().course || DEFAULT_COURSE : courseKey;
-    writeSaved({ course: savedCourse, mode, topics, shuffle: shuffleOn, theme, results });
+    /* the locked /fdfed page remembers its own course and never overwrites the one chosen on "/" */
+    const prev = readSaved();
+    writeSaved({
+      course: LOCKED_COURSES ? prev.course || DEFAULT_COURSE : courseKey,
+      lockCourse: LOCKED_COURSES ? courseKey : prev.lockCourse,
+      mode, topics, shuffle: shuffleOn, theme, results
+    });
   }, [courseKey, mode, topics, shuffleOn, theme, results]);
 
   useEffect(() => {
@@ -211,7 +219,7 @@ export function useDrill() {
   }, []);
 
   return {
-    course, courseKey, changeCourse, locked: LOCKED_COURSE,
+    course, courseKey, changeCourse, locked: LOCKED_COURSES,
     topicNames, counts,
     mode, setMode,
     topics, setTopics, toggleTopic,

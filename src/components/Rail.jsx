@@ -3,7 +3,7 @@ import { COURSES } from "../lib/useDrill.js";
 
 export default function Rail({
   open, onClose, courseKey, courseCaption, onCourse, counts, topicNames,
-  modes = MODES, topicsLabel = "Modules", locked = false, courseShort,
+  modes = MODES, topicsLabel = "Modules", locked = null, courseShort,
   mode, onMode, topics, onToggleTopic, onAllTopics,
   shuffleOn, onShuffle, dark, onTheme, onRestart, onClear
 }) {
@@ -34,10 +34,10 @@ export default function Rail({
         <div className="sub">{courseCaption}</div>
       </div>
 
-      {!locked && <div className="rgroup">
+      {(!locked || locked.length > 1) && <div className="rgroup">
         <h2>Course</h2>
         <div className="courses" role="tablist" aria-label="Course">
-          {COURSES.map((c) => (
+          {COURSES.filter((c) => !locked || locked.includes(c.key)).map((c) => (
             <button
               key={c.key}
               type="button"

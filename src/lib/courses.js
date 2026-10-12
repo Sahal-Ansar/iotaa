@@ -1,6 +1,8 @@
 import iot from "../data/iot.json";
 import nlp from "../data/nlp.json";
-import { CODE_BANK } from "./codeBank.js";
+import { makeCodeBank } from "./codeBank.js";
+import * as employeeData from "../data/fdfed.js";
+import * as labData from "../data/fdfed-lab.js";
 
 /* Match-the-pairs sets are authored as a group, so their module is tagged here. */
 const MATCH_TOPICS = {
@@ -35,21 +37,29 @@ export const COURSES = [
     bank: prepare("nlp", nlp)
   },
   {
+    key: "fdfedlab",
+    label: "FDFED · Lab 2 practice set",
+    short: "Lab 2",
+    type: "code",
+    caption: "FDFED · Lab 2 practice — 5 problems + the generalized solution",
+    bank: makeCodeBank(labData)
+  },
+  {
     key: "fdfed",
     label: "FDFED · Employee list",
-    short: "FDFED",
+    short: "Employees",
     type: "code",
     caption: "FDFED · Problem 3 employee list · learn it by heart",
-    bank: CODE_BANK
+    bank: makeCodeBank(employeeData)
   }
 ];
 
-/* /fdfed opens straight into that course with the switcher hidden */
-const LOCK_PATHS = { fdfed: /^\/fdfed\/?$/i };
-export const LOCKED_COURSE =
-  typeof window === "undefined"
-    ? null
-    : Object.keys(LOCK_PATHS).find((k) => LOCK_PATHS[k].test(window.location.pathname)) || null;
+/* /fdfed opens straight into the FDFED code courses; the other courses are hidden */
+const LOCK_PATHS = [{ re: /^\/fdfed\/?$/i, courses: ["fdfedlab", "fdfed"], title: "FDFED" }];
+const lock =
+  typeof window === "undefined" ? null : LOCK_PATHS.find((l) => l.re.test(window.location.pathname)) || null;
+export const LOCKED_COURSES = lock ? lock.courses : null;
+export const LOCK_TITLE = lock ? lock.title : null;
 
 export const DEFAULT_COURSE = "iot";
 

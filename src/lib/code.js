@@ -21,8 +21,9 @@ const isString = (t) => /^["'`]/.test(t);
 
 /* normalise one token for comparison: any quote style counts as " */
 function normTok(t) {
-  if (isString(t)) {
-    const body = t.slice(1).replace(/["'`]$/, "");
+  /* 'single' and "double" quotes are interchangeable; `template` strings are not */
+  if (/^["']/.test(t)) {
+    const body = t.slice(1).replace(/["']$/, "");
     return `"${body}"`;
   }
   return t;
@@ -117,7 +118,7 @@ const KEYWORDS = new Set([
 ]);
 
 const HL_JS =
-  /\s+|"(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?|`(?:[^`\\]|\\.)*`?|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?|=>|===|!==|\S/g;
+  /\s+|"(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?|`(?:[^`\\]|\\.)*`?|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?|=>|===|!==|==|!=|<=|>=|&&|\|\||\.\.\.|\S/g;
 const HL_CSS = /\s+|"[^"]*"?|'[^']*'?|#?-?[A-Za-z_][\w-]*|\d+(?:\.\d+)?[a-z%]*|\S/g;
 
 export function highlight(line, lang) {
@@ -209,7 +210,36 @@ const SWAPS = {
   h1: ["h2", "p"], div: ["section", "main"], SearchInput: ["Search", "SearchBox"], RoleSelect: ["RoleFilter", "Select"],
   ActiveCheckbox: ["Checkbox", "ActiveToggle"], EmployeeList: ["Employees", "EmployeeTable"], EmployeeCard: ["EmployeeRow", "Card"],
   App: ["Main", "Employees"], function: ["const"], const: ["let", "var"], false: ["true", "null"], true: ["false"],
-  return: ["break"], default: ["const"], "0": ["1"]
+  return: ["break"], default: ["const"], "0": ["1"],
+  /* lab 2 practice set */
+  students: ["student", "data"], movies: ["movie", "films"], books: ["book", "library"], menu: ["menus", "items"],
+  search: ["query", "searchText"], setSearch: ["setQuery", "updateSearch"], department: ["dept", "branch"],
+  setDepartment: ["setDept", "changeDepartment"], highCgpa: ["cgpa", "isHigh"], setHighCgpa: ["setCgpa", "toggleCgpa"],
+  genre: ["genres", "category"], setGenre: ["setGenres", "setCategory"], minRating: ["rating", "maxRating"],
+  setMinRating: ["setRating", "setMaxRating"], status: ["state", "active"], setStatus: ["setState", "setActive"],
+  availableOnly: ["available", "onlyAvailable"], setAvailableOnly: ["setAvailable", "toggleAvailable"],
+  category: ["categories", "type"], setCategory: ["setCategories", "setType"], maxPrice: ["price", "minPrice"],
+  setMaxPrice: ["setPrice", "setMinPrice"], sortBy: ["sort", "order"], setSortBy: ["setSort", "setOrder"],
+  filtered: ["filter", "results"], sorted: ["sort", "filtered"], reset: ["clear", "resetAll"], text: ["query", "search"],
+  totalSalary: ["salary", "total"], availableCount: ["count", "available"], reduce: ["map", "filter"], sort: ["filter", "reverse"],
+  isActive: ["active", "status"], cgpa: ["gpa", "CGPA"], rating: ["ratings", "score"], title: ["name", "heading"],
+  author: ["authors", "writer"], available: ["isAvailable", "issued"], price: ["cost", "prices"], year: ["years", "date"],
+  FilterableList: ["FilterList", "List"], data: ["items", "list"], searchKeys: ["searchKey", "keys"],
+  searchPlaceholder: ["placeholder", "searchText"], filters: ["filter", "options"], sortOptions: ["sortBy", "options"],
+  renderItem: ["render", "renderItems"], summary: ["total", "footer"], emptyMessage: ["message", "empty"],
+  initialState: ["state", "initial"], update: ["setState", "change"], prev: ["state", "previous"], result: ["results", "filtered"],
+  chosen: ["selected", "option"], compare: ["sort", "compareFn"], renderControl: ["render", "control"],
+  defaultValue: ["initialValue", "getDefault"], initial: ["default", "value"], options: ["values", "choices"],
+  test: ["check", "filter"], some: ["every", "find"], every: ["some", "filter"], forEach: ["map", "filter"],
+  String: ["Number", "toString"], Number: ["parseInt", "String"], all: ["any", "matchAll"], item: ["items", "x"],
+  key: ["id", "name"], radio: ["checkbox", "select"], number: ["text", "range"], step: ["min", "max"],
+  min: ["max", "step"], max: ["min", "step"], button: ["input", "a"], h2: ["h1", "h3"], h4: ["h3", "p"],
+  products: ["product", "items"], ProductsApp: ["Products", "ProductApp"], StudentsApp: ["Students", "StudentApp"],
+  MoviesApp: ["Movies", "MovieApp"], EmployeesApp: ["Employees", "EmployeeApp"], LibraryApp: ["Library", "BooksApp"],
+  MenuApp: ["Menu", "FoodApp"], label: ["name", "title"], Default: ["None", "default"],
+  Directory: ["List", "Table"], Explorer: ["Finder", "List"], Books: ["Book", "Catalog"], Food: ["Restaurant", "Dish"],
+  Minimum: ["Maximum", "Min"], Rating: ["Ratings", "Score"], Showing: ["Total", "Found"], Available: ["Issued", "Free"],
+  Issued: ["Unavailable", "Taken"], Reset: ["Clear", "Remove"], Filters: ["Filter", "All"], Total: ["Count", "Showing"]
 };
 const OPS = { "===": ["==", "!=="], "!==": ["===", "!="], "==": ["==="], "=>": ["="] };
 const DROPPABLE = new Set(["!", "default", "new"]);
@@ -226,6 +256,21 @@ export function mutations(line, lang, { fallback = false } = {}) {
     const quoted = /^["'`]/.test(t) && t.length > 1;
     const core = quoted ? t.slice(1, -1) : t;
     [].concat(SWAPS[core] || []).forEach((alt) => out.push(rebuild({ [i]: quoted ? `${t[0]}${alt}${t[0]}` : alt })));
+    if (quoted) {
+      /* swap one word inside a longer string or template */
+      core.split(/([^A-Za-z0-9-]+)/).forEach((w, wi, arr) => {
+        [].concat(SWAPS[w] || []).forEach((alt) => {
+          const nextCore = arr.map((x, k) => (k === wi ? alt : x)).join("");
+          if (nextCore !== core) out.push(rebuild({ [i]: `${t[0]}${nextCore}${t[t.length - 1]}` }));
+        });
+      });
+    } else if (/^[A-Za-z_$][\w$]{3,}$/.test(t) && !SWAPS[t]) {
+      /* singular ↔ plural is the classic half-remembered slip */
+      out.push(rebuild({ [i]: t.endsWith("s") ? t.slice(0, -1) : `${t}s` }));
+    } else if (/^\d+(\.\d+)?$/.test(t)) {
+      const n = Number(t);
+      [n + 1, n === 0 ? 10 : n * 10].forEach((alt) => out.push(rebuild({ [i]: String(Math.round(alt * 100) / 100) })));
+    }
     (OPS[t] || []).forEach((alt) => out.push(rebuild({ [i]: alt })));
     if (DROPPABLE.has(t)) out.push(rebuild({ [i]: "", [i + 1]: parts[i + 1] && !parts[i + 1].tok && t !== "!" ? "" : parts[i + 1]?.text ?? "" }));
     const j = nextTok(i);

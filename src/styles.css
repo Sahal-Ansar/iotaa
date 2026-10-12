@@ -2030,3 +2030,4 @@ button.cl {
   .gap { padding-left: calc(3.6ch + 3px); }
 }
 .opt .optcode { background: none; padding: 0; border-radius: 0; font-size: 13.5px; }
+.course { white-space: nowrap; }

@@ -45,6 +45,14 @@ export function useCodeDrill(courseKey, bank, shuffleOn) {
   const [best, setBest] = useState(saved.best || {});
 
   const topicNames = bank.topics;
+
+  /* file indexes mean different files in each course — start from "All" */
+  const firstCourse = useRef(courseKey);
+  useEffect(() => {
+    if (firstCourse.current === courseKey) return;
+    firstCourse.current = courseKey;
+    setTopics([]);
+  }, [courseKey]);
   const counts = useMemo(() => codeCounts(bank), [bank]);
   const uid = useCallback((kind, item) => `${courseKey}:${kind}:${item.id}`, [courseKey]);
 
@@ -57,7 +65,10 @@ export function useCodeDrill(courseKey, bank, shuffleOn) {
     let list = [];
     kinds.forEach((kind) => {
       bank[kind]
-        .filter((item) => topics.length === 0 || topics.includes(item.t))
+        .filter((item) => {
+          const valid = topics.filter((t) => t < bank.topics.length);
+          return valid.length === 0 || valid.includes(item.t);
+        })
         .forEach((item) => list.push({ kind, item }));
     });
     if (ALWAYS_SHUFFLED.has(mode) || (shuffleOn && !UNSHUFFLED.has(mode))) list = shuffle(list);
@@ -103,7 +114,7 @@ export function useCodeDrill(courseKey, bank, shuffleOn) {
 
   /* survival: cards survived this run, and the best run per file filter */
   const [streak, setStreak] = useState(0);
-  const bestKey = topics.length ? [...topics].sort().join(",") : "all";
+  const bestKey = `${courseKey}:${topics.length ? [...topics].sort().join(",") : "all"}`;
   useEffect(() => {
     if (mode === "survival" && streak > (best[bestKey] || 0)) {
       setBest((b) => ({ ...b, [bestKey]: streak }));

@@ -11,7 +11,8 @@ import MatchCard from "./components/MatchCard.jsx";
 import ShortCard from "./components/ShortCard.jsx";
 import CodeStage from "./components/code/CodeStage.jsx";
 import { useCodeDrill } from "./lib/useCodeDrill.js";
-import { CODE_BANK, CODE_MODES } from "./lib/codeBank.js";
+import { CODE_MODES } from "./lib/codeBank.js";
+import { COURSES, LOCK_TITLE } from "./lib/courses.js";
 
 function prefersDark() {
   return typeof window !== "undefined" &&
@@ -20,8 +21,11 @@ function prefersDark() {
 
 export default function App() {
   const d = useDrill();
-  const c = useCodeDrill("fdfed", CODE_BANK, d.shuffleOn);
   const isCode = d.course.type === "code";
+  /* the code engine always runs (hooks can't be conditional); it follows the
+     selected code course, or the first one while a quiz course is open */
+  const codeCourse = isCode ? d.course : COURSES.find((x) => x.type === "code");
+  const c = useCodeDrill(codeCourse.key, codeCourse.bank, d.shuffleOn);
   const [menuOpen, setMenuOpen] = useState(false);
   const dark = d.theme ? d.theme === "dark" : prefersDark();
 
@@ -29,8 +33,8 @@ export default function App() {
 
   /* keyboard: pick with 1-4 / a-d / T / F, Enter to confirm then advance */
   useEffect(() => {
-    if (d.locked) document.title = `${d.course.short} · Drill Room`;
-  }, [d.locked, d.course.short]);
+    if (LOCK_TITLE) document.title = `${LOCK_TITLE} · Drill Room`;
+  }, []);
 
   useEffect(() => {
     if (isCode) return undefined; /* code rounds handle their own keys */
@@ -99,7 +103,7 @@ export default function App() {
           courseCaption={d.course.caption}
           onCourse={d.changeCourse}
           courseShort={d.course.short}
-          locked={Boolean(d.locked)}
+          locked={d.locked}
           modes={isCode ? CODE_MODES : undefined}
           topicsLabel={isCode ? "Files" : "Modules"}
           counts={v.counts}

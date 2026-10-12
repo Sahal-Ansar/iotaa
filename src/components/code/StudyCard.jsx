@@ -2,15 +2,15 @@ import { useState } from "react";
 import RichText from "../RichText.jsx";
 import Actions, { Hint, Key } from "../Actions.jsx";
 import { CodeBlock } from "./CodeBits.jsx";
-import { FLOW } from "../../lib/codeBank.js";
 
-export default function StudyCard({ item, files, onNext, isLast }) {
+export default function StudyCard({ item, files, bank, onNext, isLast }) {
   const file = files[item.f];
   const [allNotes, setAllNotes] = useState(false);
   const [open, setOpen] = useState(() => new Set());
   const [cover, setCover] = useState(false);
   const [shown, setShown] = useState(() => new Set());
   const [flow, setFlow] = useState(item.f === 0);
+  const [showRef, setShowRef] = useState(false);
 
   const toggle = (setter, i) =>
     setter((prev) => {
@@ -68,13 +68,22 @@ export default function StudyCard({ item, files, onNext, isLast }) {
         }}
       />
 
+      {file.reference && (
+        <div className="flowbox">
+          <button type="button" className="flowtoggle" aria-expanded={showRef} onClick={() => setShowRef((v) => !v)}>
+            {file.reference.title} <span aria-hidden="true">{showRef ? "−" : "+"}</span>
+          </button>
+          {showRef && <CodeBlock lines={file.reference.lines} lang={file.lang} row={() => ({ className: "dim" })} />}
+        </div>
+      )}
+
       <div className="flowbox">
         <button type="button" className="flowtoggle" aria-expanded={flow} onClick={() => setFlow((v) => !v)}>
           How the files connect <span aria-hidden="true">{flow ? "−" : "+"}</span>
         </button>
-        {flow && (
+        {flow && bank.flow.length > 0 && (
           <ol>
-            {FLOW.map((t, i) => <RichText as="li" key={i}>{t}</RichText>)}
+            {bank.flow.map((t, i) => <RichText as="li" key={i}>{t}</RichText>)}
           </ol>
         )}
       </div>

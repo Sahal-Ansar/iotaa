@@ -425,3 +425,24 @@ export const QUIZ = [
   { f: 5, q: "What does an inactive employee show?", opts: ["Disabled", "Inactive", "No", "Nothing"], a: 1, exp: "<code>employee.active ? \"Active\" : \"Inactive\"</code>" },
   { f: 5, q: "Which element is each card?", opts: ["div", "li", "p", "tr"], a: 1, exp: "An <code>&lt;li&gt;</code> inside EmployeeList's <code>&lt;ul&gt;</code>." }
 ];
+
+/* lines that look like they could belong — for Spot the intruder */
+export const INTRUDERS = [
+  'import { useEffect } from "react";',
+  "const [employees, setEmployees] = useState([]);",
+  "console.log(filteredEmployees);",
+  '<option value="Intern">Intern</option>',
+  "const matchesSalary = emp.salary > 50000;",
+  "<p>Showing {employees.length} results</p>",
+  'import "./App.css";',
+  "export { App };",
+  "const sorted = [...employees].sort((a, b) => a.salary - b.salary);",
+  '<button onClick={() => setSearchText("")}>Clear</button>',
+  "useEffect(() => {}, [searchText]);",
+  "<span>{employee.id}</span>",
+  'name="role"',
+  "const handleChange = (e) => setRole(e.target.value);",
+  "<h2>Filters</h2>",
+  'import EmployeeCard from "./EmployeeCard";',
+  "if (!employees) return null;"
+];

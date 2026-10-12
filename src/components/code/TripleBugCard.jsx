@@ -3,15 +3,14 @@ import RichText from "../RichText.jsx";
 import Feedback from "../Feedback.jsx";
 import Actions, { Hint } from "../Actions.jsx";
 import { CodeBlock, Hl, inputProps } from "./CodeBits.jsx";
-import { BUGS } from "../../data/fdfed.js";
 import { indentOf, isBlank, sameLine, shuffled } from "../../lib/code.js";
 
 /* three broken lines in one file: tap each, fix it in place */
-export default function TripleBugCard({ item, files, answered, onFinish, onNext }) {
+export default function TripleBugCard({ item, files, bank, answered, onFinish, onNext }) {
   const file = files[item.f];
   const [bugs] = useState(() => {
     const byLine = {};
-    shuffled(BUGS.filter((b) => b.f === item.f)).forEach((b) => { if (!byLine[b.line]) byLine[b.line] = b; });
+    shuffled(bank.bugs.filter((b) => b.f === item.f)).forEach((b) => { if (!byLine[b.line]) byLine[b.line] = b; });
     return shuffled(Object.values(byLine)).slice(0, 3).sort((a, b) => a.line - b.line);
   });
   const badAt = Object.fromEntries(bugs.map((b) => [b.line, b]));

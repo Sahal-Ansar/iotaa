@@ -8,7 +8,8 @@ drawn from the course material — nothing outside the syllabus.
 | **IoT** — Internet of Things & Applications (Dr U Somalatha) | All modules | 180 | 70 | 30 | 5 | 46 |
 | **NLP** — Natural Language Processing (Shaik Mohammad Rafi B) | Units 1–3 | 164 | 60 | 30 | 5 | 42 |
 
-| **FDFED** — Problem 3, employee list (6 component files) | App.jsx, SearchInput.jsx, RoleSelect.jsx, ActiveCheckbox.jsx, EmployeeList.jsx, EmployeeCard.jsx | code rounds — see below |||||
+| **FDFED · Lab 2** — 5 practice problems + generalized FilterableList (7 files) | Problem1–5, FilterableList.jsx, GeneralizedUsage.jsx | code rounds — see below |||||
+| **FDFED · Employees** — Problem 3, employee list (6 component files) | App.jsx, SearchInput.jsx, RoleSelect.jsx, ActiveCheckbox.jsx, EmployeeList.jsx, EmployeeCard.jsx | code rounds — see below |||||
 
 Switch courses from the sidebar. Progress, accuracy and the module filter are kept
 **separately per course** in `localStorage`, so a reload — or a switch and back —
@@ -33,8 +34,11 @@ you keep missing is easy to look up.
 
 ## FDFED code rounds
 
-Open **`/fdfed`** to go straight to the FDFED course with the course switcher
-hidden (that's the link to share). The goal is to know the five files by heart;
+Open **`/fdfed`** to go straight to the two FDFED code courses (Lab 2 and
+Employees) with IoT/NLP hidden — that's the link to share. The Lab 2 problem
+files are drilled in their exam form: the sample-data array is replaced by the
+`import x from "./x.json"` line the file's own comment gives (the sample data
+is still shown in Study), and comments are dropped. The goal is to know the five files by heart;
 `employees.json` is data, so it is summarised in Study but not drilled.
 
 28 rounds, grouped in the sidebar:
@@ -45,7 +49,7 @@ hidden (that's the link to share). The goal is to know the five files by heart;
 | **Recognise** | Real or fake · Pick the line (look-alike options) · What comes next · What does it do (line → explanation) · Concept quiz |
 | **Rebuild** | Line order · Unscramble the line (token chips) · Place the line (tap the gap) · Swapped lines |
 | **Recall** | Line fill · Finish the line · Line before (backwards) · Token blanks · Symbol blanks · First letters · Imports & exports · Chain recall |
-| **Repair** | Fix the bug (66 hand-written bugs) · Find the missing line · Spot the intruder · Triple bug |
+| **Repair** | Fix the bug (84 hand-written bugs for Lab 2, 66 for Employees) · Find the missing line · Spot the intruder · Triple bug |
 | **Test** | Write from memory · Speed round (8 s per line) · Survival (3 lives, best run saved) · Mixed rounds |
 
 Look-alike lines are generated from a confusion list (`useState`↔`useEffect`,
